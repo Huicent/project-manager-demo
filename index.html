@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>项目管理平台 Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      background-color: #f1f5f9;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 侧边栏 */
+    aside {
+      width: 280px;
+      background: #1e293b;
+      color: white;
+      padding: 24px;
+      overflow-y: auto;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+    }
+
+    aside h1 {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 32px;
+    }
+
+    aside h3 {
+      font-size: 12px;
+      font-weight: bold;
+      opacity: 0.7;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .project-list button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: transparent;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .project-list button:hover {
+      background: rgba(59, 130, 246, 0.5);
+    }
+
+    .project-list button.active {
+      background: #3b82f6;
+      font-weight: 600;
+    }
+
+    /* 主内容 */
+    main {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+    }
+
+    .project-header {
+      margin-bottom: 32px;
+    }
+
+    .project-header h1 {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #1e293b;
+    }
+
+    .project-header p {
+      color: #64748b;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    /* 进度条 */
+    .progress-section {
+      margin-bottom: 24px;
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #10b981;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* 统计卡片 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-color: #cbd5e1;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #3b82f6;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    /* 控制按钮 */
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e1;
+    }
+
+    .btn.active {
+      background: #3b82f6;
+      color: white;
+    }
+
+    /* 添加任务输入 */
+    .add-task {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .add-task input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border 0.2s;
+    }
+
+    .add-task input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* 看板视图 */
+    .kanban-container {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 20px;
+    }
+
+    .kanban-column {
+      flex: 0 0 350px;
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .column-header {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      color: #475569;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .column-count {
+      color: #94a3b8;
+      font-weight: normal;
+      font-size: 13px;
+    }
+
+    .task-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .task-card:hover {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+    }
+
+    .task-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1e293b;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      width: fit-content;
+    }
+
+    .badge-high {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .badge-medium {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-low {
+      background: #dbeafe;
+      color: #0c4a6e;
+    }
+
+    /* 列表视图 */
+    .list-view {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+    }
+
+    .list-view table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .list-view thead {
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .list-view th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 14px;
+      color: #475569;
+    }
+
+    .list-view td {
+      padding: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 14px;
+    }
+
+    .list-view tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      color: white;
+    }
+
+    .status-todo {
+      background: #94a3b8;
+    }
+
+    .status-inprogress {
+      background: #f59e0b;
+    }
+
+    .status-done {
+      background: #10b981;
+    }
+
+    /* 响应式 */
+    @media (max-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      aside {
+        width: 200px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      aside {
+        width: 100%;
+        padding: 16px;
+      }
+
+      main {
+        padding: 16px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .kanban-container {
+        flex-direction: column;
+      }
+
+      .kanban-column {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <h1>📊 项目管理</h1>
+    <div class="project-list">
+      <h3>我的项目</h3>
+      <button class="project-btn active" data-project="1">产品发布 v2.0</button>
+      <button class="project-btn" data-project="2">基础设施优化</button>
+    </div>
+  </aside>
+
+  <main>
+    <div id="projectContent"></div>
+  </main>
+
+  <script>
+    const projects = {
+      1: {
+        name: '产品发布 v2.0',
+        description: '新版本发布计划',
+        progress: 65,
+        tasks: [
+          { id: 1, title: '设计原型', description: '完成UI/UX设计', status: 'done', priority: 'high', assignee: '张三', dueDate: '2026-05-15' },
+          { id: 2, title: '后端API开发', description: '实现REST API', status: 'in-progress', priority: 'high', assignee: '李四', dueDate: '2026-05-25' },
+          { id: 3, title: '前端开发', description: 'React组件开发', status: 'in-progress', priority: 'high', assignee: '王五', dueDate: '2026-05-28' },
+          { id: 4, title: '测试计划', description: '制定测试用例', status: 'todo', priority: 'medium', assignee: '赵六', dueDate: '2026-06-02' },
+          { id: 5, title: '文档编写', description: '用户手册和API文档', status: 'todo', priority: 'low', assignee: '孙七', dueDate: '2026-06-05' },
+        ]
+      },
+      2: {
+        name: '基础设施优化',
+        description: '服务器和性能优化',
+        progress: 40,
+        tasks: [
+          { id: 6, title: '数据库迁移', description: '迁移到PostgreSQL', status: 'in-progress', priority: 'high', assignee: '李四', dueDate: '2026-06-10' },
+          { id: 7, title: 'CDN部署', description: '配置全球CDN', status: 'todo', priority: 'medium', assignee: '张三', dueDate: '2026-06-15' },
+        ]
+      }
+    };
+
+    let currentProject = 1;
+    let currentView = 'kanban';
+
+    function init() {
+      setupEventListeners();
+      render();
+    }
+
+    function setupEventListeners() {
+      document.querySelectorAll('.project-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.project-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          currentProject = parseInt(e.target.dataset.project);
+          render();
+        });
+      });
+    }
+
+    function render() {
+      const project = projects[currentProject];
+      let stats = {
+        total: project.tasks.length,
+        inprogress: project.tasks.filter(t => t.status === 'in-progress').length,
+        done: project.tasks.filter(t => t.status === 'done').length,
+        todo: project.tasks.filter(t => t.status === 'todo').length,
+      };
+
+      const html = `
+        <div class="project-header">
+          <h1>${project.name}</h1>
+          <p>${project.description}</p>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>项目进度</span>
+            <span>${project.progress}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${project.progress}%"></div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">${stats.total}</div>
+            <div class="stat-label">总任务</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${stats.inprogress}</div>
+            <div class="stat-label">进行中</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${stats.done}</div>
+            <div class="stat-label">已完成</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${stats.todo}</div>
+            <div class="stat-label">待处理</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn ${currentView === 'kanban' ? 'btn-primary active' : 'btn-secondary'}" onclick="switchView('kanban')">📋 看板视图</button>
+          <button class="btn ${currentView === 'list' ? 'btn-primary active' : 'btn-secondary'}" onclick="switchView('list')">📝 列表视图</button>
+        </div>
+
+        <div class="add-task">
+          <input type="text" id="newTaskInput" placeholder="添加新任务..." onkeypress="addTask(event)">
+          <button class="btn btn-primary" onclick="addTaskBtn()">➕ 添加</button>
+        </div>
+
+        ${currentView === 'kanban' ? renderKanban(project) : renderList(project)}
+      `;
+
+      document.getElementById('projectContent').innerHTML = html;
+    }
+
+    function renderKanban(project) {
+      const statuses = [
+        { key: 'todo', label: '待处理', icon: '⏳' },
+        { key: 'in-progress', label: '进行中', icon: '⚙️' },
+        { key: 'done', label: '已完成', icon: '✅' },
+      ];
+
+      let html = '<div class="kanban-container">';
+      
+      statuses.forEach(status => {
+        const tasks = project.tasks.filter(t => t.status === status.key);
+        html += `
+          <div class="kanban-column">
+            <div class="column-header">
+              <span>${status.icon} ${status.label}</span>
+              <span class="column-count">${tasks.length}</span>
+            </div>
+        `;
+
+        tasks.forEach(task => {
+          html += `
+            <div class="task-card" onclick="cycleStatus(${currentProject}, ${task.id})">
+              <div class="task-title">${task.title}</div>
+              <div class="task-meta">
+                <span class="badge badge-${task.priority}">${getPriorityText(task.priority)}</span>
+                <span>👤 ${task.assignee}</span>
+                <span>📅 ${task.dueDate}</span>
+              </div>
+            </div>
+          `;
+        });
+
+        html += '</div>';
+      });
+
+      html += '</div>';
+      return html;
+    }
+
+    function renderList(project) {
+      let html = '<div class="list-view"><table><thead><tr><th>任务</th><th>状态</th><th>优先级</th><th>分配人</th><th>截止日期</th></tr></thead><tbody>';
+
+      project.tasks.forEach(task => {
+        html += `
+          <tr>
+            <td>${task.title}</td>
+            <td><span class="status-badge status-${task.status.replace('-', '')}">${getStatusText(task.status)}</span></td>
+            <td><span class="badge badge-${task.priority}">${getPriorityText(task.priority)}</span></td>
+            <td>${task.assignee}</td>
+            <td>${task.dueDate}</td>
+          </tr>
+        `;
+      });
+
+      html += '</tbody></table></div>';
+      return html;
+    }
+
+    function getPriorityText(p) {
+      const map = { high: '高优先级', medium: '中优先级', low: '低优先级' };
+      return map[p];
+    }
+
+    function getStatusText(s) {
+      const map = { todo: '待处理', 'in-progress': '进行中', done: '已完成' };
+      return map[s];
+    }
+
+    function switchView(view) {
+      currentView = view;
+      render();
+    }
+
+    function cycleStatus(projectId, taskId) {
+      const task = projects[projectId].tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const cycle = ['todo', 'in-progress', 'done'];
+      const idx = cycle.indexOf(task.status);
+      task.status = cycle[(idx + 1) % 3];
+      render();
+    }
+
+    function addTaskBtn() {
+      addTask({ key: 'Enter' });
+    }
+
+    function addTask(event) {
+      if (event.key !== 'Enter') return;
+
+      const input = document.getElementById('newTaskInput');
+      const title = input.value.trim();
+      if (!title) return;
+
+      const project = projects[currentProject];
+      const newId = Math.max(...project.tasks.map(t => t.id), 0) + 1;
+
+      project.tasks.push({
+        id: newId,
+        title,
+        description: '',
+        status: 'todo',
+        priority: 'medium',
+        assignee: '未分配',
+        dueDate: new Date().toISOString().split('T')[0],
+      });
+
+      input.value = '';
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>
